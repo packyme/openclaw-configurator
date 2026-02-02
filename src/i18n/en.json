@@ -1,0 +1,8 @@
+{
+  "welcome": "Welcome to OpenClaw Configurator",
+  "select_language": "Select language",
+  "confirm_continue": "Do you want to continue?",
+  "input_name": "Enter name",
+  "operation_cancelled": "Operation cancelled",
+  "operation_completed": "Operation completed"
+}

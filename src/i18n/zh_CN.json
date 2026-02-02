@@ -1,0 +1,8 @@
+{
+  "welcome": "欢迎使用 OpenClaw 配置器",
+  "select_language": "选择语言",
+  "confirm_continue": "是否继续？",
+  "input_name": "请输入名称",
+  "operation_cancelled": "操作已取消",
+  "operation_completed": "操作完成"
+}
