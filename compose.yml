@@ -1,0 +1,9 @@
+services:
+  dev:
+    image: node:lts
+    command: ['sh']
+    tty: true
+    stop_grace_period: 0s
+    network_mode: host
+    volumes:
+      - ./dist:/dist
