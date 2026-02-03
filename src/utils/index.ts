@@ -20,6 +20,7 @@ export {
   MENU_EXIT,
   type MenuItem,
   type MenuConfig,
+  type MenuContext,
 } from "./menu";
 export { select, input, password } from "@inquirer/prompts";
 export { default as ora, oraPromise } from "ora";

@@ -21,6 +21,6 @@
   "select_model": "Select model to add",
   "input_api_key": "Enter API Key for {provider}",
   "saving_config": "Saving configuration...",
-  "config_saved": "Configuration saved for {provider}",
+  "config_saved": "Configuration saved",
   "config_save_failed": "Failed to save configuration"
 }

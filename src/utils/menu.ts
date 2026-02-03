@@ -1,21 +1,33 @@
 import { select } from "@inquirer/prompts";
+import { createLogger, type Logger } from "./logger";
 
 export const MENU_EXIT = Symbol("MENU_EXIT");
+
+/**
+ * 菜单执行上下文
+ */
+export interface MenuContext {
+  logger: Logger;
+  abortSignal?: AbortSignal;
+}
 
 export interface MenuItem<T = unknown> {
   label: string;
   value: T | typeof MENU_EXIT;
-  action?: () => Promise<void> | void;
+  action?: (ctx: MenuContext) => Promise<void> | void;
 }
 
 export interface MenuConfig<T = unknown> {
   message: string;
   items: MenuItem<T>[];
   loop?: boolean;
+  context?: MenuContext;
 }
 
 export async function runMenu<T>(config: MenuConfig<T>): Promise<T | null> {
-  const { message, items, loop = false } = config;
+  const { message, items, loop = false, context } = config;
+
+  const ctx = context ?? { logger: createLogger("Menu") };
 
   const choices = items.map((item) => ({
     name: item.label,
@@ -33,7 +45,7 @@ export async function runMenu<T>(config: MenuConfig<T>): Promise<T | null> {
     }
 
     if (selected.action) {
-      await selected.action();
+      await selected.action(ctx);
     }
 
     if (!loop) {

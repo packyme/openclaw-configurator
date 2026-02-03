@@ -6,18 +6,22 @@ import {
   symbols,
   fetchModels,
   filterModelsByVendor,
-  setProviderConfig,
-  setModel,
-  triggerGatewayRestart,
-  setApiKey,
   isSupportedProvider,
   VENDOR_FILTERS,
   runMenu,
   MENU_EXIT,
   type OpenclawModel,
   type SupportedProvider,
+  type MenuContext,
 } from "@/utils";
 import { t } from "@/i18n";
+import {
+  runOperations,
+  createSetProviderConfig,
+  createSetApiKey,
+  createSetModel,
+  type Operation,
+} from "@/operations";
 
 const logger = createLogger("ConfigFlow");
 
@@ -66,17 +70,17 @@ async function selectModel(
   });
 }
 
-async function configureProvider(): Promise<void> {
+async function configureProvider(ctx: MenuContext): Promise<void> {
   // Step 1: Select vendor
   const vendor = await selectVendor();
   if (!vendor) {
     return;
   }
-  logger.debug(`Selected vendor: ${vendor}`);
+  ctx.logger.debug(`Selected vendor: ${vendor}`);
 
   // Step 2: Get base URL
   const baseUrl = await getBaseUrl(vendor);
-  logger.debug(`Base URL: ${baseUrl}`);
+  ctx.logger.debug(`Base URL: ${baseUrl}`);
 
   // Step 3: Fetch and filter models
   const spinner = ora(t("fetching_models")).start();
@@ -87,7 +91,7 @@ async function configureProvider(): Promise<void> {
     spinner.succeed();
   } catch (err) {
     spinner.fail(t("fetching_models_failed"));
-    logger.error(err instanceof Error ? err.message : String(err));
+    ctx.logger.error(err instanceof Error ? err.message : String(err));
     return;
   }
 
@@ -101,7 +105,7 @@ async function configureProvider(): Promise<void> {
   if (!selectedModel) {
     return;
   }
-  logger.debug(`Selected model: ${selectedModel.key}`);
+  ctx.logger.debug(`Selected model: ${selectedModel.key}`);
 
   // Step 5: Determine provider
   const vendorFilter = VENDOR_FILTERS[vendor];
@@ -119,28 +123,24 @@ async function configureProvider(): Promise<void> {
     mask: "*",
   });
 
-  // Step 7: Save all config at once (atomic save)
+  // Step 7: Save config via operations (auto restart included)
   const providerBaseUrl = getProviderBaseUrl(baseUrl, provider);
-  const saveSpinner = ora(t("saving_config")).start();
-  try {
-    setProviderConfig(provider, {
-      baseUrl: providerBaseUrl,
-      models: [],
-    });
-    setApiKey(provider, apiKey);
-    setModel(selectedModel.key);
-    triggerGatewayRestart();
-    saveSpinner.succeed(t("config_saved", { provider }));
-  } catch (err) {
-    saveSpinner.fail(t("config_save_failed"));
-    logger.error(err instanceof Error ? err.message : String(err));
-  }
+  const operations: Operation[] = [
+    createSetProviderConfig(provider, providerBaseUrl),
+    createSetApiKey(provider, apiKey),
+    createSetModel(selectedModel.key),
+  ];
+
+  await runOperations(ctx, operations);
 }
 
 export async function runConfigLoop(): Promise<void> {
+  const ctx: MenuContext = { logger };
+
   await runMenu({
     message: t("config_action_prompt"),
     loop: true,
+    context: ctx,
     items: [
       {
         label: t("config_action_add"),

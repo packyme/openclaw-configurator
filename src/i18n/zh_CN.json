@@ -21,6 +21,6 @@
   "select_model": "选择要添加的模型",
   "input_api_key": "请输入 {provider} 的 API Key",
   "saving_config": "正在保存配置...",
-  "config_saved": "配置已保存: {provider}",
+  "config_saved": "配置已保存",
   "config_save_failed": "保存配置失败"
 }
