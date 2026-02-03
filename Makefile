@@ -1,4 +1,4 @@
-.PHONY: install dev build typecheck clean
+.PHONY: install dev build build-prod typecheck clean
 
 install:
 	pnpm install
@@ -8,6 +8,9 @@ dev:
 
 build:
 	pnpm build
+
+build-prod:
+	node --experimental-strip-types scripts/build.ts --prod
 
 typecheck:
 	pnpm typecheck

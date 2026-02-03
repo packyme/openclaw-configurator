@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 make install    # Install dependencies (pnpm)
 make dev        # Run in development mode (tsx)
 make build      # Build single-file bundle (esbuild → dist/index.js)
+make build-prod # Build for production (LOG_LEVEL=error baked in)
 make typecheck  # Type check only
 make clean      # Remove dist/ and node_modules/
 ```

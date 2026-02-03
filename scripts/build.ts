@@ -1,6 +1,8 @@
 import * as esbuild from "esbuild";
 import path from "node:path";
 
+const isProd = process.argv.includes("--prod");
+
 await esbuild.build({
   entryPoints: ["src/index.ts"],
   bundle: true,
@@ -10,4 +12,9 @@ await esbuild.build({
   alias: {
     "@": path.resolve(import.meta.dirname, "../src"),
   },
+  define: isProd
+    ? {
+        "process.env.LOG_LEVEL": JSON.stringify("error"),
+      }
+    : undefined,
 });
