@@ -7,8 +7,5 @@
   "operation_completed": "Operation completed",
   "checking_openclaw": "Checking openclaw executable...",
   "openclaw_found": "openclaw found: {path}",
-  "openclaw_not_found": "openclaw not found. Please ensure openclaw is installed and in your PATH.",
-  "checking_openclaw_config": "Checking openclaw configuration...",
-  "openclaw_config_found": "openclaw configuration found: {path}",
-  "openclaw_config_not_found": "openclaw configuration not found. Please run 'openclaw onboard --install-daemon' first."
+  "openclaw_not_found": "openclaw not found. Please ensure openclaw is installed and in your PATH."
 }

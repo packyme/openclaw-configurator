@@ -1,13 +1,4 @@
-import {
-  createLogger,
-  which,
-  fileExists,
-  getOpenclawConfigPath,
-  select,
-  ora,
-  chalk,
-  symbols,
-} from "@/utils";
+import { createLogger, which, select, ora, chalk, symbols } from "@/utils";
 import { t, setLocale, detectLocale, type Locale } from "@/i18n";
 
 const logger = createLogger("App");
@@ -78,15 +69,6 @@ async function run(ctx: AppContext): Promise<void> {
   }
   ctx.openclawPath = openclawPath;
   spinner.succeed(t("openclaw_found", { path: openclawPath }));
-
-  // Step 3: Check openclaw configuration file
-  const configSpinner = ora(t("checking_openclaw_config")).start();
-  const configPath = getOpenclawConfigPath();
-  if (!fileExists(configPath)) {
-    configSpinner.fail(t("openclaw_config_not_found"));
-    process.exit(1);
-  }
-  configSpinner.succeed(t("openclaw_config_found", { path: configPath }));
   console.log();
 
   // TODO: next steps

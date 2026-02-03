@@ -7,8 +7,5 @@
   "operation_completed": "操作完成",
   "checking_openclaw": "正在检查 openclaw 可执行文件...",
   "openclaw_found": "已找到 openclaw: {path}",
-  "openclaw_not_found": "未找到 openclaw。请确保 openclaw 已安装并在 PATH 中。",
-  "checking_openclaw_config": "正在检查 openclaw 配置文件...",
-  "openclaw_config_found": "已找到 openclaw 配置文件: {path}",
-  "openclaw_config_not_found": "未找到 openclaw 配置文件。请先运行 'openclaw onboard --install-daemon'。"
+  "openclaw_not_found": "未找到 openclaw。请确保 openclaw 已安装并在 PATH 中。"
 }
