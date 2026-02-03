@@ -7,7 +7,7 @@ An interactive CLI tool for configuring [OpenClaw](https://github.com/openclaw/o
 ## Features
 
 - 🌍 Multi-language support (English / 简体中文)
-- 🔧 Add and modify AI providers
+- 🔧 Add AI providers
 - 🔑 Configure API keys securely
 - 🤖 Select and switch between models
 - ⚡ Built-in support for PackyCode and custom providers
@@ -31,9 +31,8 @@ After running the script, you'll be guided through an interactive menu:
 
 1. **Select Language** - Choose English or 简体中文
 2. **Add Provider** - Configure a new AI provider with base URL and API key
-3. **Modify Provider** - Update existing provider settings
-4. **Select Model** - Switch between configured models
-5. **Exit** - Save and exit
+3. **Select Model** - Switch between configured models
+4. **Exit** - Exit the program
 
 ### Supported Providers
 

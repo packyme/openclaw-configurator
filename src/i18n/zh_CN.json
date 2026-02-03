@@ -10,7 +10,6 @@
   "openclaw_not_found": "未找到 openclaw。请确保 openclaw 已安装并在 PATH 中。",
   "config_action_prompt": "请选择操作",
   "config_action_add": "添加供应商",
-  "config_action_modify": "修改供应商",
   "config_action_select_model": "选择模型",
   "config_action_exit": "退出",
   "select_vendor": "选择供应商",

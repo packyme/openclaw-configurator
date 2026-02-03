@@ -197,11 +197,6 @@ export async function runConfigLoop(): Promise<void> {
         action: configureProvider,
       },
       {
-        label: t("config_action_modify"),
-        value: "modify",
-        action: configureProvider,
-      },
-      {
         label: t("config_action_select_model"),
         value: "select_model",
         action: selectConfiguredModel,

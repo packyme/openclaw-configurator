@@ -10,7 +10,6 @@
   "openclaw_not_found": "openclaw not found. Please ensure openclaw is installed and in your PATH.",
   "config_action_prompt": "What would you like to do?",
   "config_action_add": "Add provider",
-  "config_action_modify": "Modify provider",
   "config_action_select_model": "Select model",
   "config_action_exit": "Exit",
   "select_vendor": "Select vendor",
