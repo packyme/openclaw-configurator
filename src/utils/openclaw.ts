@@ -1,4 +1,7 @@
 import { spawnSync } from "node:child_process";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 
 export interface OpenclawModel {
   key: string;
@@ -24,6 +27,25 @@ export interface ProviderConfig {
 export interface VendorFilter {
   providers: SupportedProvider[];
   models: string[];
+}
+
+interface OpenclawConfig {
+  models?: {
+    mode?: string;
+    providers?: Record<string, ProviderConfig>;
+  };
+  agents?: {
+    defaults?: {
+      model?: {
+        primary?: string;
+      };
+      models?: Record<string, Record<string, unknown>>;
+    };
+  };
+  meta?: {
+    lastTouchedAt?: string;
+  };
+  [key: string]: unknown;
 }
 
 const SUPPORTED_PROVIDERS = ["openai", "anthropic"] as const;
@@ -62,6 +84,28 @@ export const VENDOR_FILTERS: Record<string, VendorFilter> = {
     models: [],
   },
 };
+
+function getOpenclawConfigDir(): string {
+  return process.env.OPENCLAW_CONFIG_DIR || join(homedir(), ".openclaw");
+}
+
+function getOpenclawConfigPath(): string {
+  return join(getOpenclawConfigDir(), "openclaw.json");
+}
+
+function readOpenclawConfig(): OpenclawConfig {
+  const configPath = getOpenclawConfigPath();
+  if (!existsSync(configPath)) {
+    return {};
+  }
+  const content = readFileSync(configPath, "utf-8");
+  return JSON.parse(content) as OpenclawConfig;
+}
+
+function writeOpenclawConfig(config: OpenclawConfig): void {
+  const configPath = getOpenclawConfigPath();
+  writeFileSync(configPath, JSON.stringify(config, null, 2), "utf-8");
+}
 
 export function isSupportedProvider(
   key: string,
@@ -123,36 +167,69 @@ export function filterModelsByVendor(
   });
 }
 
-export function setModelsMode(mode: string): void {
-  const result = spawnSync("openclaw", ["config", "set", "models.mode", mode], {
-    encoding: "utf-8",
-  });
-  if (result.status !== 0) {
-    throw new Error(result.stderr || "Failed to set models mode");
-  }
-}
-
 export function setProviderConfig(
   provider: SupportedProvider,
   config: ProviderConfig
 ): void {
-  setModelsMode("merge");
-  const json = JSON.stringify(config);
-  const result = spawnSync(
-    "openclaw",
-    ["config", "set", `models.providers.${provider}`, json],
-    { encoding: "utf-8" }
-  );
-  if (result.status !== 0) {
-    throw new Error(result.stderr || "Failed to set provider config");
+  const openclawConfig = readOpenclawConfig();
+
+  // Ensure models object exists
+  if (!openclawConfig.models) {
+    openclawConfig.models = {};
   }
+
+  // Set mode to merge
+  openclawConfig.models.mode = "merge";
+
+  // Ensure providers object exists
+  if (!openclawConfig.models.providers) {
+    openclawConfig.models.providers = {};
+  }
+
+  // Set provider config
+  openclawConfig.models.providers[provider] = config;
+
+  writeOpenclawConfig(openclawConfig);
 }
 
 export function setModel(modelKey: string): void {
-  const result = spawnSync("openclaw", ["models", "set", modelKey], {
-    encoding: "utf-8",
-  });
-  if (result.status !== 0) {
-    throw new Error(result.stderr || "Failed to set model");
+  const openclawConfig = readOpenclawConfig();
+
+  // Ensure agents.defaults structure exists
+  if (!openclawConfig.agents) {
+    openclawConfig.agents = {};
   }
+  if (!openclawConfig.agents.defaults) {
+    openclawConfig.agents.defaults = {};
+  }
+  if (!openclawConfig.agents.defaults.model) {
+    openclawConfig.agents.defaults.model = {};
+  }
+  if (!openclawConfig.agents.defaults.models) {
+    openclawConfig.agents.defaults.models = {};
+  }
+
+  // Set primary model
+  openclawConfig.agents.defaults.model.primary = modelKey;
+
+  // Ensure model key exists in models
+  if (!openclawConfig.agents.defaults.models[modelKey]) {
+    openclawConfig.agents.defaults.models[modelKey] = {};
+  }
+
+  writeOpenclawConfig(openclawConfig);
+}
+
+export function triggerGatewayRestart(): void {
+  const openclawConfig = readOpenclawConfig();
+
+  // Ensure meta object exists
+  if (!openclawConfig.meta) {
+    openclawConfig.meta = {};
+  }
+
+  // Update lastTouchedAt to current timestamp
+  openclawConfig.meta.lastTouchedAt = new Date().toISOString();
+
+  writeOpenclawConfig(openclawConfig);
 }

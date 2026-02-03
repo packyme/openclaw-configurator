@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { createLogger, which, select, ora, chalk, symbols } from "@/utils";
 import { t, setLocale, detectLocale, type Locale } from "@/i18n";
 import { runConfigLoop } from "@/config-flow";

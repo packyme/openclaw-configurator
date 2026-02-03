@@ -8,6 +8,7 @@ import {
   filterModelsByVendor,
   setProviderConfig,
   setModel,
+  triggerGatewayRestart,
   setApiKey,
   isSupportedProvider,
   VENDOR_FILTERS,
@@ -128,6 +129,7 @@ async function configureProvider(): Promise<void> {
     });
     setApiKey(provider, apiKey);
     setModel(selectedModel.key);
+    triggerGatewayRestart();
     saveSpinner.succeed(t("config_saved", { provider }));
   } catch (err) {
     saveSpinner.fail(t("config_save_failed"));

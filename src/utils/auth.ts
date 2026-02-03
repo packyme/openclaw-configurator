@@ -14,8 +14,12 @@ interface AuthProfilesFile {
   profiles: Record<string, AuthProfile>;
 }
 
+function getOpenclawConfigDir(): string {
+  return process.env.OPENCLAW_CONFIG_DIR || join(homedir(), ".openclaw");
+}
+
 function getAuthProfilesPath(): string {
-  return join(homedir(), ".openclaw", "agents", "main", "agent", "auth-profiles.json");
+  return join(getOpenclawConfigDir(), "agents", "main", "agent", "auth-profiles.json");
 }
 
 function ensureAuthProfilesDir(): void {
