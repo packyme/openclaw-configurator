@@ -23,6 +23,13 @@ export {
   type MenuContext,
 } from "./menu";
 export { select, input, password } from "@inquirer/prompts";
+export {
+  escSelect,
+  escInput,
+  escPassword,
+  isPromptCancelled,
+  PromptCancelledError,
+} from "./prompt";
 export { default as ora, oraPromise } from "ora";
 export { default as chalk } from "chalk";
 export { default as symbols } from "log-symbols";

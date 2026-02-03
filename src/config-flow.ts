@@ -1,7 +1,8 @@
 import {
   createLogger,
-  input,
-  password,
+  escInput,
+  escPassword,
+  isPromptCancelled,
   ora,
   symbols,
   fetchModels,
@@ -39,13 +40,20 @@ async function selectVendor(): Promise<Vendor | null> {
   });
 }
 
-async function getBaseUrl(vendor: Vendor): Promise<string> {
+async function getBaseUrl(vendor: Vendor): Promise<string | null> {
   if (vendor === "packycode") {
     return PACKYCODE_BASE_URL;
   }
-  return input({
-    message: t("input_base_url"),
-  });
+  try {
+    return await escInput({
+      message: t("input_base_url"),
+    });
+  } catch (err) {
+    if (isPromptCancelled(err)) {
+      return null;
+    }
+    throw err;
+  }
 }
 
 function getProviderBaseUrl(
@@ -80,6 +88,9 @@ async function configureProvider(ctx: MenuContext): Promise<void> {
 
   // Step 2: Get base URL
   const baseUrl = await getBaseUrl(vendor);
+  if (!baseUrl) {
+    return;
+  }
   ctx.logger.debug(`Base URL: ${baseUrl}`);
 
   // Step 3: Fetch and filter models
@@ -118,10 +129,18 @@ async function configureProvider(ctx: MenuContext): Promise<void> {
   }
 
   // Step 6: Get API key
-  const apiKey = await password({
-    message: t("input_api_key", { provider }),
-    mask: "*",
-  });
+  let apiKey: string;
+  try {
+    apiKey = await escPassword({
+      message: t("input_api_key", { provider }),
+      mask: "*",
+    });
+  } catch (err) {
+    if (isPromptCancelled(err)) {
+      return;
+    }
+    throw err;
+  }
 
   // Step 7: Save config via operations (auto restart included)
   const providerBaseUrl = getProviderBaseUrl(baseUrl, provider);

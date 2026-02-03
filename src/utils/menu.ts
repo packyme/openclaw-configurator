@@ -1,5 +1,5 @@
-import { select } from "@inquirer/prompts";
 import { createLogger, type Logger } from "./logger";
+import { escSelect, isPromptCancelled } from "./prompt";
 
 export const MENU_EXIT = Symbol("MENU_EXIT");
 
@@ -35,10 +35,18 @@ export async function runMenu<T>(config: MenuConfig<T>): Promise<T | null> {
   }));
 
   do {
-    const selected = await select<MenuItem<T>>({
-      message,
-      choices,
-    });
+    let selected: MenuItem<T>;
+    try {
+      selected = await escSelect<MenuItem<T>>({
+        message,
+        choices,
+      });
+    } catch (err) {
+      if (isPromptCancelled(err)) {
+        return null;
+      }
+      throw err;
+    }
 
     if (selected.value === MENU_EXIT) {
       return null;
