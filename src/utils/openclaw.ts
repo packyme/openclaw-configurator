@@ -62,8 +62,11 @@ const PACKYCODE_MODELS = [
   "claude-opus-4-1-20250805",
   "claude-opus-4-20250514",
   "claude-opus-4-5-20251101",
+  "claude-opus-4-6",
   "claude-sonnet-4-20250514",
   "claude-sonnet-4-5-20250929",
+  "claude-sonnet-4-5-20250929-thinking",
+  "claude-sonnet-4-6",
   // GPT models
   "gpt-4o-mini",
   "gpt-5",
