@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, dirname } from "node:path";
+import type { SupportedProvider } from "./openclaw";
 
 interface AuthProfile {
   type: "api_key";
@@ -50,7 +51,7 @@ function writeAuthProfiles(data: AuthProfilesFile): void {
   writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
 }
 
-export function setApiKey(provider: string, apiKey: string): void {
+export function setApiKey(provider: SupportedProvider, apiKey: string): void {
   const profileKey = `${provider}:default`;
   const data = readAuthProfiles();
 

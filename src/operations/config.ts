@@ -21,10 +21,10 @@ export function createSetProviderConfig(
 }
 
 /**
- * 创建设置 API Key 的操作（写入 auth-profiles.json）
+ * 创建设置 API Key 的操作
  */
 export function createSetApiKey(
-  provider: string,
+  provider: SupportedProvider,
   apiKey: string
 ): Operation {
   return {
