@@ -21,6 +21,7 @@ export interface OpenclawModelsResult {
 
 export interface ProviderConfig {
   baseUrl: string;
+  apiKey: string;
   models: string[];
 }
 
@@ -83,6 +84,7 @@ const PACKYCODE_MODELS = [
   "gpt-5-minimal",
   "gpt-5-pro",
   "gpt-5.1",
+  "gpt-5.1-chat",
   "gpt-5.1-codex",
   "gpt-5.1-codex-max",
   "gpt-5.1-codex-max-high",
@@ -104,6 +106,10 @@ const PACKYCODE_MODELS = [
   "gpt-5.2-pro",
   "gpt-5.2-xhigh",
   "gpt-5.3-codex",
+  "gpt-5.3-codex-high",
+  "gpt-5.3-codex-low",
+  "gpt-5.3-codex-medium",
+  "gpt-5.3-codex-xhigh",
 ];
 
 export const VENDOR_FILTERS: Record<string, VendorFilter> = {
