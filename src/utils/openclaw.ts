@@ -103,6 +103,7 @@ const PACKYCODE_MODELS = [
   "gpt-5.2-medium",
   "gpt-5.2-pro",
   "gpt-5.2-xhigh",
+  "gpt-5.3-codex",
 ];
 
 export const VENDOR_FILTERS: Record<string, VendorFilter> = {
