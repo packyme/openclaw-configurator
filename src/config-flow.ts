@@ -176,9 +176,10 @@ async function configureProvider(ctx: MenuContext): Promise<void> {
 
   // Step 8: Save config via operations (auto restart included)
   const providerBaseUrl = getProviderBaseUrl(baseUrl, provider);
+  const authProvider = serviceType === "codex" && provider === "openai" ? "openai-codex" : provider;
   const operations: Operation[] = [
     createSetProviderConfig(provider, providerBaseUrl),
-    createSetApiKey(provider, apiKey),
+    createSetApiKey(authProvider, apiKey),
     createSetModel(selectedModel.key),
   ];
 
