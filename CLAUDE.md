@@ -22,7 +22,7 @@ Always run `make typecheck build` after changes to verify types and build succee
 
 ## Architecture
 
-This is a CLI tool for configuring OpenClaw (Linux). TypeScript source compiles to a single ESM bundle via esbuild.
+This is a CLI tool for configuring OpenClaw (Linux). TypeScript source compiles to a single CJS bundle via esbuild (`dist/index.js`).
 
 ### App Lifecycle (`src/index.ts`)
 
@@ -106,3 +106,25 @@ import { t } from "@/i18n";
 ```
 
 Configured in both `tsconfig.json` (for IDE/typecheck) and `scripts/build.ts` (for esbuild).
+
+### Environment Variables
+
+- `OPENCLAW_CONFIG_DIR` - Override OpenClaw config directory (default: `~/.openclaw`)
+- `LOG_LEVEL` - Log verbosity: `debug` | `info` | `warn` | `error` (default: `info`, production build bakes in `error`)
+- `APP_VERSION` - Injected at build time as `__APP_VERSION__` (default: `"dev"`)
+
+See `.env.example` for reference.
+
+### Config File Paths
+
+The tool writes to two config files under the OpenClaw config directory:
+- `openclaw.json` - Provider URLs, model selection, gateway restart trigger (`meta.lastTouchedAt`)
+- `agents/main/agent/auth-profiles.json` - API key storage per provider (format: `{provider}:default`)
+
+### Docker Dev Environment
+
+`compose.yml` provides a Linux container with OpenClaw pre-installed for testing:
+```bash
+docker compose up -d    # Start dev container
+docker compose exec dev bash  # Enter container (dist/ is mounted at /dist)
+```
