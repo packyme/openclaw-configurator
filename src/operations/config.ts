@@ -12,11 +12,16 @@ import type { Operation } from "./types";
  */
 export function createSetProviderConfig(
   provider: SupportedProvider,
-  baseUrl: string
+  baseUrl: string,
+  api?: string
 ): Operation {
+  const config: { baseUrl: string; models: string[]; api?: string } = { baseUrl, models: [] };
+  if (api) {
+    config.api = api;
+  }
   return {
     name: "op_set_provider_config",
-    execute: () => setProviderConfig(provider, { baseUrl, models: [] }),
+    execute: () => setProviderConfig(provider, config),
   };
 }
 

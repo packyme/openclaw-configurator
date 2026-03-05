@@ -3,6 +3,7 @@ export { which } from "./system";
 export {
   fetchModels,
   filterModelsByVendor,
+  getPackyCodeModels,
   setProviderConfig,
   setModel,
   triggerGatewayRestart,

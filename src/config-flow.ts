@@ -7,6 +7,7 @@ import {
   symbols,
   fetchModels,
   filterModelsByVendor,
+  getPackyCodeModels,
   isSupportedProvider,
   getConfiguredModels,
   getPrimaryModel,
@@ -121,21 +122,23 @@ async function configureProvider(ctx: MenuContext): Promise<void> {
   }
   ctx.logger.debug(`Base URL: ${baseUrl}`);
 
-  // Step 4: Fetch and filter models
-  const spinner = ora(t("fetching_models")).start();
+  // Step 4: Get available models
   let filteredModels: OpenclawModel[];
-  try {
-    const result = fetchModels();
-    filteredModels = filterModelsByVendor(result.models, vendor);
-    // Codex service type: only show openai/ models (GPT series)
-    if (serviceType === "codex") {
-      filteredModels = filteredModels.filter((m) => m.key.startsWith("openai/"));
+  if (vendor === "packycode") {
+    // PackyCode: use built-in whitelist directly
+    filteredModels = getPackyCodeModels(serviceType);
+  } else {
+    // Other vendors: fetch from openclaw models list
+    const spinner = ora(t("fetching_models")).start();
+    try {
+      const result = fetchModels();
+      filteredModels = filterModelsByVendor(result.models, vendor);
+      spinner.succeed();
+    } catch (err) {
+      spinner.fail(t("fetching_models_failed"));
+      ctx.logger.error(err instanceof Error ? err.message : String(err));
+      return;
     }
-    spinner.succeed();
-  } catch (err) {
-    spinner.fail(t("fetching_models_failed"));
-    ctx.logger.error(err instanceof Error ? err.message : String(err));
-    return;
   }
 
   if (filteredModels.length === 0) {
@@ -176,8 +179,13 @@ async function configureProvider(ctx: MenuContext): Promise<void> {
 
   // Step 8: Save config via operations (auto restart included)
   const providerBaseUrl = getProviderBaseUrl(baseUrl, provider);
+  // PackyCode + openai provider needs openai-completions API format
+  const providerApi =
+    vendor === "packycode" && provider === "openai"
+      ? "openai-completions"
+      : undefined;
   const operations: Operation[] = [
-    createSetProviderConfig(provider, providerBaseUrl),
+    createSetProviderConfig(provider, providerBaseUrl, providerApi),
     createSetApiKey(provider, apiKey),
     createSetModel(selectedModel.key),
   ];

@@ -22,11 +22,25 @@ export interface OpenclawModelsResult {
 export interface ProviderConfig {
   baseUrl: string;
   models: string[];
+  api?: string;
 }
 
 export interface VendorFilter {
   providers: SupportedProvider[];
   models: string[];
+}
+
+export interface ModelBinding {
+  provider?: SupportedProvider;
+  baseUrl?: string;
+  authProfile?: string;
+  [key: string]: unknown;
+}
+
+export interface ModelRuntimeContext {
+  provider: SupportedProvider;
+  baseUrl?: string;
+  authProfile?: string;
 }
 
 interface OpenclawConfig {
@@ -39,7 +53,7 @@ interface OpenclawConfig {
       model?: {
         primary?: string;
       };
-      models?: Record<string, Record<string, unknown>>;
+      models?: Record<string, ModelBinding>;
     };
   };
   meta?: {
@@ -51,60 +65,86 @@ interface OpenclawConfig {
 const SUPPORTED_PROVIDERS = ["openai", "anthropic"] as const;
 export type SupportedProvider = (typeof SUPPORTED_PROVIDERS)[number];
 
-// PackyCode supported models (model name suffix after provider prefix)
+// PackyCode supported models (full key with provider prefix)
 const PACKYCODE_MODELS = [
   // Claude models
-  "claude-3-5-haiku-20241022",
-  "claude-3-5-sonnet-20240620",
-  "claude-3-5-sonnet-20241022",
-  "claude-3-7-sonnet-20250219",
-  "claude-haiku-4-5-20251001",
-  "claude-opus-4-1-20250805",
-  "claude-opus-4-20250514",
-  "claude-opus-4-5-20251101",
-  "claude-opus-4-6",
-  "claude-sonnet-4-20250514",
-  "claude-sonnet-4-5-20250929",
-  "claude-sonnet-4-5-20250929-thinking",
-  "claude-sonnet-4-6",
+  "anthropic/claude-3-5-haiku-20241022",
+  "anthropic/claude-3-5-sonnet-20241022",
+  "anthropic/claude-haiku-4-5-20251001",
+  "anthropic/claude-opus-4-1-20250805",
+  "anthropic/claude-opus-4-20250514",
+  "anthropic/claude-opus-4-5-20251101",
+  "anthropic/claude-opus-4-6",
+  "anthropic/claude-sonnet-4-20250514",
+  "anthropic/claude-sonnet-4-5-20250929",
+  "anthropic/claude-sonnet-4-6",
+  // Qwen models (via OpenAI-compatible API)
+  "openai/qwen3-max",
+  "openai/qwen3-vl-flash",
+  "openai/qwen3.5-plus",
   // GPT models
-  "gpt-4o-mini",
-  "gpt-5",
-  "gpt-5-codex",
-  "gpt-5-codex-high",
-  "gpt-5-codex-low",
-  "gpt-5-codex-medium",
-  "gpt-5-codex-mini",
-  "gpt-5-codex-mini-high",
-  "gpt-5-codex-mini-medium",
-  "gpt-5-high",
-  "gpt-5-low",
-  "gpt-5-medium",
-  "gpt-5-minimal",
-  "gpt-5-pro",
-  "gpt-5.1",
-  "gpt-5.1-chat",
-  "gpt-5.1-codex",
-  "gpt-5.1-codex-max",
-  "gpt-5.1-codex-max-high",
-  "gpt-5.1-codex-max-xhigh",
-  "gpt-5.1-codex-mini",
-  "gpt-5.1-high",
-  "gpt-5.1-low",
-  "gpt-5.1-medium",
-  "gpt-5.1-minimal",
-  "gpt-5.2",
-  "gpt-5.2-codex",
-  "gpt-5.2-codex-high",
-  "gpt-5.2-codex-low",
-  "gpt-5.2-codex-medium",
-  "gpt-5.2-codex-xhigh",
-  "gpt-5.2-high",
-  "gpt-5.2-low",
-  "gpt-5.2-medium",
-  "gpt-5.2-pro",
-  "gpt-5.2-xhigh",
+  "openai/gpt-5",
+  "openai/gpt-5-codex",
+  "openai/gpt-5-codex-high",
+  "openai/gpt-5-codex-low",
+  "openai/gpt-5-codex-medium",
+  "openai/gpt-5-codex-mini",
+  "openai/gpt-5-codex-mini-high",
+  "openai/gpt-5-codex-mini-medium",
+  "openai/gpt-5-high",
+  "openai/gpt-5-low",
+  "openai/gpt-5-medium",
+  "openai/gpt-5-minimal",
+  "openai/gpt-5.1",
+  "openai/gpt-5.1-codex",
+  "openai/gpt-5.1-codex-max",
+  "openai/gpt-5.1-codex-max-high",
+  "openai/gpt-5.1-codex-max-xhigh",
+  "openai/gpt-5.1-codex-mini",
+  "openai/gpt-5.1-high",
+  "openai/gpt-5.1-low",
+  "openai/gpt-5.1-medium",
+  "openai/gpt-5.1-minimal",
+  "openai/gpt-5.2",
+  "openai/gpt-5.2-codex",
+  "openai/gpt-5.2-codex-high",
+  "openai/gpt-5.2-codex-low",
+  "openai/gpt-5.2-codex-medium",
+  "openai/gpt-5.2-codex-xhigh",
+  "openai/gpt-5.2-high",
+  "openai/gpt-5.2-low",
+  "openai/gpt-5.2-medium",
+  "openai/gpt-5.2-xhigh",
+  "openai/gpt-5.3-codex",
+  "openai/gpt-5.3-codex-high",
+  "openai/gpt-5.3-codex-low",
+  "openai/gpt-5.3-codex-medium",
+  "openai/gpt-5.3-codex-xhigh",
+  // Gemini models (via OpenAI-compatible API)
+  "openai/gemini-2.5-flash",
+  "openai/gemini-2.5-pro",
+  "openai/gemini-3-flash-preview",
+  "openai/gemini-3-pro-preview",
+  "openai/gemini-3-pro-preview-search",
+  "openai/gemini-3.1-pro-preview",
 ];
+
+export function getPackyCodeModels(serviceType?: string): OpenclawModel[] {
+  let models = PACKYCODE_MODELS;
+  if (serviceType === "codex") {
+    models = models.filter((key) => key.startsWith("openai/"));
+  }
+  return models.map((key) => ({
+    key,
+    name: getModelSuffix(key),
+    input: "text",
+    contextWindow: 0,
+    local: false,
+    available: true,
+    tags: [],
+    missing: false,
+  }));
+}
 
 export const VENDOR_FILTERS: Record<string, VendorFilter> = {
   packycode: {
@@ -137,6 +177,12 @@ function readOpenclawConfig(): OpenclawConfig {
 function writeOpenclawConfig(config: OpenclawConfig): void {
   const configPath = getOpenclawConfigPath();
   writeFileSync(configPath, JSON.stringify(config, null, 2), "utf-8");
+}
+
+function toSupportedProvider(value: unknown): SupportedProvider | null {
+  return SUPPORTED_PROVIDERS.includes(value as SupportedProvider)
+    ? (value as SupportedProvider)
+    : null;
 }
 
 export function isSupportedProvider(
@@ -193,9 +239,8 @@ export function filterModelsByVendor(
       return true;
     }
 
-    // Check model name suffix
-    const modelSuffix = getModelSuffix(m.key);
-    return filter.models.includes(modelSuffix);
+    // Check full key match
+    return filter.models.includes(m.key);
   });
 }
 
@@ -220,6 +265,35 @@ export function setProviderConfig(
 
   // Set provider config
   openclawConfig.models.providers[provider] = config;
+
+  writeOpenclawConfig(openclawConfig);
+}
+
+export function setProviderBaseUrl(
+  provider: SupportedProvider,
+  baseUrl: string
+): void {
+  const openclawConfig = readOpenclawConfig();
+
+  // Ensure models object exists
+  if (!openclawConfig.models) {
+    openclawConfig.models = {};
+  }
+
+  // Set mode to merge
+  openclawConfig.models.mode = "merge";
+
+  // Ensure providers object exists
+  if (!openclawConfig.models.providers) {
+    openclawConfig.models.providers = {};
+  }
+
+  const existing = openclawConfig.models.providers[provider];
+  openclawConfig.models.providers[provider] = {
+    ...(existing ?? {}),
+    baseUrl,
+    models: Array.isArray(existing?.models) ? existing.models : [],
+  };
 
   writeOpenclawConfig(openclawConfig);
 }
@@ -250,6 +324,58 @@ export function setModel(modelKey: string): void {
   }
 
   writeOpenclawConfig(openclawConfig);
+}
+
+export function setModelBinding(modelKey: string, binding: ModelBinding): void {
+  const openclawConfig = readOpenclawConfig();
+
+  // Ensure agents.defaults.models structure exists
+  if (!openclawConfig.agents) {
+    openclawConfig.agents = {};
+  }
+  if (!openclawConfig.agents.defaults) {
+    openclawConfig.agents.defaults = {};
+  }
+  if (!openclawConfig.agents.defaults.models) {
+    openclawConfig.agents.defaults.models = {};
+  }
+
+  const existing = openclawConfig.agents.defaults.models[modelKey] ?? {};
+  openclawConfig.agents.defaults.models[modelKey] = {
+    ...existing,
+    ...binding,
+  };
+
+  writeOpenclawConfig(openclawConfig);
+}
+
+export function getModelBinding(modelKey: string): ModelBinding | null {
+  const config = readOpenclawConfig();
+  const binding = config.agents?.defaults?.models?.[modelKey];
+  return binding ?? null;
+}
+
+export function getModelRuntimeContext(
+  modelKey: string
+): ModelRuntimeContext | null {
+  const binding = getModelBinding(modelKey);
+  const provider =
+    toSupportedProvider(binding?.provider) ?? isSupportedProvider(modelKey);
+
+  if (!provider) {
+    return null;
+  }
+
+  const baseUrl =
+    typeof binding?.baseUrl === "string" && binding.baseUrl.length > 0
+      ? binding.baseUrl
+      : undefined;
+  const authProfile =
+    typeof binding?.authProfile === "string" && binding.authProfile.length > 0
+      ? binding.authProfile
+      : undefined;
+
+  return { provider, baseUrl, authProfile };
 }
 
 export function triggerGatewayRestart(): void {
