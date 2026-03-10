@@ -120,6 +120,11 @@ const PACKYCODE_MODELS = [
   "openai/gpt-5.3-codex-low",
   "openai/gpt-5.3-codex-medium",
   "openai/gpt-5.3-codex-xhigh",
+  "openai/gpt-5.4",
+  "openai/gpt-5.4-high",
+  "openai/gpt-5.4-low",
+  "openai/gpt-5.4-medium",
+  "openai/gpt-5.4-xhigh",
   // Gemini models (via OpenAI-compatible API)
   "openai/gemini-2.5-flash",
   "openai/gemini-2.5-pro",
