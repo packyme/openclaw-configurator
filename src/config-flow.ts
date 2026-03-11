@@ -179,10 +179,14 @@ async function configureProvider(ctx: MenuContext): Promise<void> {
 
   // Step 8: Save config via operations (auto restart included)
   const providerBaseUrl = getProviderBaseUrl(baseUrl, provider);
-  // PackyCode + openai provider needs openai-completions API format
+  // PackyCode + openai provider:
+  // - codex service uses openai-responses
+  // - api service uses openai-completions
   const providerApi =
     vendor === "packycode" && provider === "openai"
-      ? "openai-completions"
+      ? serviceType === "codex"
+        ? "openai-responses"
+        : "openai-completions"
       : undefined;
   const operations: Operation[] = [
     createSetProviderConfig(provider, providerBaseUrl, providerApi),
