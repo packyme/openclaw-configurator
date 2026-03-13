@@ -27,6 +27,9 @@
   "no_configured_models": "No models configured. Please add a provider first.",
   "current_model_hint": "(current)",
   "input_api_key": "Enter API Key for {provider}",
+  "existing_api_key": "Found existing API Key for {provider}, use it?",
+  "existing_api_key_yes": "Yes, use existing key",
+  "existing_api_key_no": "No, enter a new key",
   "saving_config": "Saving configuration...",
   "config_saved": "Configuration saved",
   "config_save_failed": "Failed to save configuration"

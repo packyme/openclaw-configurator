@@ -11,6 +11,8 @@ import {
   isSupportedProvider,
   getConfiguredModels,
   getPrimaryModel,
+  getProviderApiKey,
+  getApiKeyFromAuthProfiles,
   VENDOR_FILTERS,
   runMenu,
   MENU_EXIT,
@@ -22,7 +24,6 @@ import { t } from "@/i18n";
 import {
   runOperations,
   createSetProviderConfig,
-  createSetApiKey,
   createSetModel,
   type Operation,
 } from "@/operations";
@@ -78,7 +79,7 @@ function getProviderBaseUrl(
   baseUrl: string,
   provider: SupportedProvider
 ): string {
-  if (provider === "openai" || provider === "zai") {
+  if (provider === "openai" || provider === "zai" || provider === "gemini" || provider === "qwen") {
     return `${baseUrl}/v1`;
   }
   return baseUrl;
@@ -163,18 +164,41 @@ async function configureProvider(ctx: MenuContext): Promise<void> {
     return;
   }
 
-  // Step 7: Get API key
-  let apiKey: string;
-  try {
-    apiKey = await escPassword({
-      message: t("input_api_key", { provider }),
-      mask: "*",
+  // Step 7: Get API key (check existing first, migrate from auth-profiles if needed)
+  let apiKey: string | undefined;
+
+  // Check provider config first, then fall back to auth-profiles (legacy)
+  const existingKey =
+    getProviderApiKey(provider) ?? getApiKeyFromAuthProfiles(provider);
+
+  if (existingKey) {
+    const useExisting = await runMenu<boolean>({
+      message: t("existing_api_key", { provider }),
+      items: [
+        { label: t("existing_api_key_yes"), value: true },
+        { label: t("existing_api_key_no"), value: false },
+      ],
     });
-  } catch (err) {
-    if (isPromptCancelled(err)) {
+    if (useExisting === null) {
       return;
     }
-    throw err;
+    if (useExisting) {
+      apiKey = existingKey;
+    }
+  }
+
+  if (!apiKey) {
+    try {
+      apiKey = await escPassword({
+        message: t("input_api_key", { provider }),
+        mask: "*",
+      });
+    } catch (err) {
+      if (isPromptCancelled(err)) {
+        return;
+      }
+      throw err;
+    }
   }
 
   // Step 8: Save config via operations (auto restart included)
@@ -183,17 +207,19 @@ async function configureProvider(ctx: MenuContext): Promise<void> {
   let providerApi: string | undefined;
   if (vendor === "packycode") {
     if (provider === "openai") {
-      const modelSuffix = selectedModel.key.split("/")[1] ?? "";
-      providerApi = modelSuffix.startsWith("gpt-")
-        ? "openai-responses"
-        : "openai-completions";
+      providerApi = "openai-responses";
     } else if (provider === "minimax") {
       providerApi = "anthropic-messages";
+    } else if (provider === "gemini" || provider === "qwen") {
+      providerApi = "openai-completions";
     }
   }
   const operations: Operation[] = [
-    createSetProviderConfig(provider, providerBaseUrl, providerApi),
-    createSetApiKey(provider, apiKey),
+    createSetProviderConfig(provider, providerBaseUrl, {
+      api: providerApi,
+      apiKey,
+      modelKey: selectedModel.key,
+    }),
     createSetModel(selectedModel.key),
   ];
 

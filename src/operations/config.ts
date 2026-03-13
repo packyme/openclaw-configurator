@@ -2,39 +2,40 @@ import {
   setProviderConfig,
   setModel,
   triggerGatewayRestart,
+  getModelSuffix,
   type SupportedProvider,
+  type ProviderConfig,
 } from "@/utils/openclaw";
-import { setApiKey } from "@/utils/auth";
+import { removeApiKeyFromAuthProfiles } from "@/utils/auth";
 import type { Operation } from "./types";
 
 /**
  * 创建设置 Provider 配置的操作
+ * API Key 写入 openclaw.json provider config，同时清理 auth-profiles.json 中的旧条目
  */
 export function createSetProviderConfig(
   provider: SupportedProvider,
   baseUrl: string,
-  api?: string
+  options?: { api?: string; apiKey?: string; modelKey?: string }
 ): Operation {
-  const config: { baseUrl: string; models: string[]; api?: string } = { baseUrl, models: [] };
-  if (api) {
-    config.api = api;
+  const config: ProviderConfig = { baseUrl, models: [] };
+  if (options?.api) {
+    config.api = options.api;
+  }
+  if (options?.apiKey) {
+    config.apiKey = options.apiKey;
+  }
+  if (options?.modelKey) {
+    const modelName = getModelSuffix(options.modelKey);
+    config.models = [{ id: modelName, name: modelName }];
   }
   return {
     name: "op_set_provider_config",
-    execute: () => setProviderConfig(provider, config),
-  };
-}
-
-/**
- * 创建设置 API Key 的操作
- */
-export function createSetApiKey(
-  provider: SupportedProvider,
-  apiKey: string
-): Operation {
-  return {
-    name: "op_set_api_key",
-    execute: () => setApiKey(provider, apiKey),
+    execute: () => {
+      setProviderConfig(provider, config);
+      // 写入 openclaw.json 后，清理 auth-profiles.json 中该 provider 的旧条目
+      removeApiKeyFromAuthProfiles(provider);
+    },
   };
 }
 

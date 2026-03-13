@@ -27,6 +27,9 @@
   "no_configured_models": "尚未配置任何模型，请先添加供应商。",
   "current_model_hint": "(当前)",
   "input_api_key": "请输入 {provider} 的 API Key",
+  "existing_api_key": "已找到 {provider} 的 API Key，是否沿用？",
+  "existing_api_key_yes": "沿用已有的 Key",
+  "existing_api_key_no": "输入新的 Key",
   "saving_config": "正在保存配置...",
   "config_saved": "配置已保存",
   "config_save_failed": "保存配置失败"

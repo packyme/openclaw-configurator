@@ -19,10 +19,16 @@ export interface OpenclawModelsResult {
   models: OpenclawModel[];
 }
 
+export interface ProviderModelEntry {
+  id: string;
+  name: string;
+}
+
 export interface ProviderConfig {
   baseUrl: string;
-  models: string[];
+  models: ProviderModelEntry[];
   api?: string;
+  apiKey?: string;
 }
 
 export interface VendorFilter {
@@ -62,7 +68,7 @@ interface OpenclawConfig {
   [key: string]: unknown;
 }
 
-const SUPPORTED_PROVIDERS = ["openai", "anthropic", "minimax", "zai"] as const;
+const SUPPORTED_PROVIDERS = ["openai", "anthropic", "minimax", "zai", "gemini", "qwen"] as const;
 export type SupportedProvider = (typeof SUPPORTED_PROVIDERS)[number];
 
 // PackyCode supported models (full key with provider prefix)
@@ -78,10 +84,10 @@ const PACKYCODE_MODELS = [
   "anthropic/claude-sonnet-4-20250514",
   "anthropic/claude-sonnet-4-5-20250929",
   "anthropic/claude-sonnet-4-6",
-  // Qwen models (via OpenAI-compatible API)
-  "openai/qwen3-max",
-  "openai/qwen3-vl-flash",
-  "openai/qwen3.5-plus",
+  // Qwen models
+  "qwen/qwen3-max",
+  "qwen/qwen3-vl-flash",
+  "qwen/qwen3.5-plus",
   // GPT models
   "openai/gpt-5",
   "openai/gpt-5-codex",
@@ -130,13 +136,13 @@ const PACKYCODE_MODELS = [
   "minimax/MiniMax-M2.1",
   "minimax/minimax-m2.5",
   "minimax/minimax-m2.5-lightning",
-  // Gemini models (via OpenAI-compatible API)
-  "openai/gemini-2.5-flash",
-  "openai/gemini-2.5-pro",
-  "openai/gemini-3-flash-preview",
-  "openai/gemini-3-pro-preview",
-  "openai/gemini-3-pro-preview-search",
-  "openai/gemini-3.1-pro-preview",
+  // Gemini models
+  "gemini/gemini-2.5-flash",
+  "gemini/gemini-2.5-pro",
+  "gemini/gemini-3-flash-preview",
+  "gemini/gemini-3-pro-preview",
+  "gemini/gemini-3-pro-preview-search",
+  "gemini/gemini-3.1-pro-preview",
   // GLM models
   "zai/glm-5",
 ];
@@ -160,7 +166,7 @@ export function getPackyCodeModels(serviceType?: string): OpenclawModel[] {
 
 export const VENDOR_FILTERS: Record<string, VendorFilter> = {
   packycode: {
-    providers: ["openai", "anthropic", "minimax", "zai"],
+    providers: ["openai", "anthropic", "minimax", "zai", "gemini", "qwen"],
     models: PACKYCODE_MODELS,
   },
   other: {
@@ -313,7 +319,7 @@ export function setProviderBaseUrl(
 export function setModel(modelKey: string): void {
   const openclawConfig = readOpenclawConfig();
 
-  // Ensure agents.defaults structure exists
+  // Ensure agents.defaults.model structure exists
   if (!openclawConfig.agents) {
     openclawConfig.agents = {};
   }
@@ -323,17 +329,9 @@ export function setModel(modelKey: string): void {
   if (!openclawConfig.agents.defaults.model) {
     openclawConfig.agents.defaults.model = {};
   }
-  if (!openclawConfig.agents.defaults.models) {
-    openclawConfig.agents.defaults.models = {};
-  }
 
   // Set primary model
   openclawConfig.agents.defaults.model.primary = modelKey;
-
-  // Ensure model key exists in models
-  if (!openclawConfig.agents.defaults.models[modelKey]) {
-    openclawConfig.agents.defaults.models[modelKey] = {};
-  }
 
   writeOpenclawConfig(openclawConfig);
 }
@@ -405,16 +403,49 @@ export function triggerGatewayRestart(): void {
 }
 
 /**
- * Get configured models from agents.defaults.models
+ * Get configured models from models.providers[].models[]
+ * Falls back to agents.defaults.models for backward compatibility
  * Returns array of model keys (e.g., ["openai/gpt-5.2", "anthropic/claude-opus-4-5-20251101"])
  */
 export function getConfiguredModels(): string[] {
   const config = readOpenclawConfig();
-  const models = config.agents?.defaults?.models;
-  if (!models) {
-    return [];
+  const seen = new Set<string>();
+
+  // New: read from models.providers[provider].models[]
+  const providers = config.models?.providers;
+  if (providers) {
+    for (const [provider, providerConfig] of Object.entries(providers)) {
+      if (providerConfig && Array.isArray(providerConfig.models)) {
+        for (const model of providerConfig.models) {
+          const id = typeof model === "string" ? model : model?.id;
+          if (typeof id === "string") {
+            seen.add(`${provider}/${id}`);
+          }
+        }
+      }
+    }
   }
-  return Object.keys(models);
+
+  // Legacy: read from agents.defaults.models
+  const legacyModels = config.agents?.defaults?.models;
+  if (legacyModels && typeof legacyModels === "object") {
+    for (const key of Object.keys(legacyModels)) {
+      seen.add(key);
+    }
+  }
+
+  return [...seen];
+}
+
+/**
+ * Get API key from provider config (apiKey field)
+ */
+export function getProviderApiKey(provider: string): string | null {
+  const config = readOpenclawConfig();
+  const providerConfig = config.models?.providers?.[provider];
+  return typeof providerConfig?.apiKey === "string" && providerConfig.apiKey.length > 0
+    ? providerConfig.apiKey
+    : null;
 }
 
 /**

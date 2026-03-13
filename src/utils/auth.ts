@@ -63,3 +63,26 @@ export function setApiKey(provider: SupportedProvider, apiKey: string): void {
 
   writeAuthProfiles(data);
 }
+
+/**
+ * 从 auth-profiles.json 读取已有的 API Key（旧版兼容）
+ */
+export function getApiKeyFromAuthProfiles(provider: string): string | null {
+  const data = readAuthProfiles();
+  const profile = data.profiles[`${provider}:default`];
+  return profile?.key ?? null;
+}
+
+/**
+ * 从 auth-profiles.json 中删除指定 provider 的条目
+ * 当 API Key 已迁移到 openclaw.json 的 provider config 后调用
+ */
+export function removeApiKeyFromAuthProfiles(provider: string): void {
+  const data = readAuthProfiles();
+  const profileKey = `${provider}:default`;
+  if (!(profileKey in data.profiles)) {
+    return;
+  }
+  delete data.profiles[profileKey];
+  writeAuthProfiles(data);
+}

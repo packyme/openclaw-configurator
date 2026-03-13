@@ -10,6 +10,7 @@ export {
   isSupportedProvider,
   getConfiguredModels,
   getPrimaryModel,
+  getProviderApiKey,
   VENDOR_FILTERS,
   type OpenclawModel,
   type OpenclawModelsResult,
@@ -17,7 +18,7 @@ export {
   type SupportedProvider,
   type VendorFilter,
 } from "./openclaw";
-export { setApiKey } from "./auth";
+export { setApiKey, getApiKeyFromAuthProfiles, removeApiKeyFromAuthProfiles } from "./auth";
 export {
   runMenu,
   MENU_EXIT,
