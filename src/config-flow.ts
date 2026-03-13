@@ -78,7 +78,7 @@ function getProviderBaseUrl(
   baseUrl: string,
   provider: SupportedProvider
 ): string {
-  if (provider === "openai") {
+  if (provider === "openai" || provider === "zai") {
     return `${baseUrl}/v1`;
   }
   return baseUrl;
@@ -179,15 +179,18 @@ async function configureProvider(ctx: MenuContext): Promise<void> {
 
   // Step 8: Save config via operations (auto restart included)
   const providerBaseUrl = getProviderBaseUrl(baseUrl, provider);
-  // PackyCode + openai provider:
-  // - codex service uses openai-responses
-  // - api service uses openai-completions
-  const providerApi =
-    vendor === "packycode" && provider === "openai"
-      ? serviceType === "codex"
+  // PackyCode: set API format per provider
+  let providerApi: string | undefined;
+  if (vendor === "packycode") {
+    if (provider === "openai") {
+      const modelSuffix = selectedModel.key.split("/")[1] ?? "";
+      providerApi = modelSuffix.startsWith("gpt-")
         ? "openai-responses"
-        : "openai-completions"
-      : undefined;
+        : "openai-completions";
+    } else if (provider === "minimax") {
+      providerApi = "anthropic-messages";
+    }
+  }
   const operations: Operation[] = [
     createSetProviderConfig(provider, providerBaseUrl, providerApi),
     createSetApiKey(provider, apiKey),

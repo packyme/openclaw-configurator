@@ -62,7 +62,7 @@ interface OpenclawConfig {
   [key: string]: unknown;
 }
 
-const SUPPORTED_PROVIDERS = ["openai", "anthropic"] as const;
+const SUPPORTED_PROVIDERS = ["openai", "anthropic", "minimax", "zai"] as const;
 export type SupportedProvider = (typeof SUPPORTED_PROVIDERS)[number];
 
 // PackyCode supported models (full key with provider prefix)
@@ -125,6 +125,11 @@ const PACKYCODE_MODELS = [
   "openai/gpt-5.4-low",
   "openai/gpt-5.4-medium",
   "openai/gpt-5.4-xhigh",
+  // MiniMax models
+  "minimax/minimax-m2.1",
+  "minimax/MiniMax-M2.1",
+  "minimax/minimax-m2.5",
+  "minimax/minimax-m2.5-lightning",
   // Gemini models (via OpenAI-compatible API)
   "openai/gemini-2.5-flash",
   "openai/gemini-2.5-pro",
@@ -132,12 +137,14 @@ const PACKYCODE_MODELS = [
   "openai/gemini-3-pro-preview",
   "openai/gemini-3-pro-preview-search",
   "openai/gemini-3.1-pro-preview",
+  // GLM models
+  "zai/glm-5",
 ];
 
 export function getPackyCodeModels(serviceType?: string): OpenclawModel[] {
   let models = PACKYCODE_MODELS;
   if (serviceType === "codex") {
-    models = models.filter((key) => key.startsWith("openai/"));
+    models = models.filter((key) => key.startsWith("openai/gpt-"));
   }
   return models.map((key) => ({
     key,
@@ -153,7 +160,7 @@ export function getPackyCodeModels(serviceType?: string): OpenclawModel[] {
 
 export const VENDOR_FILTERS: Record<string, VendorFilter> = {
   packycode: {
-    providers: ["openai", "anthropic"],
+    providers: ["openai", "anthropic", "minimax", "zai"],
     models: PACKYCODE_MODELS,
   },
   other: {
