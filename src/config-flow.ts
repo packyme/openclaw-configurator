@@ -90,6 +90,7 @@ async function selectModel(
 ): Promise<OpenclawModel | null> {
   return runMenu<OpenclawModel>({
     message: t("select_model"),
+    searchable:true,
     items: models.map((m) => ({
       label: `${m.name} (${m.key})`,
       value: m,

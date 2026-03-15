@@ -22,10 +22,11 @@ export interface MenuConfig<T = unknown> {
   items: MenuItem<T>[];
   loop?: boolean;
   context?: MenuContext;
+  searchable?: boolean;
 }
 
 export async function runMenu<T>(config: MenuConfig<T>): Promise<T | null> {
-  const { message, items, loop = false, context } = config;
+  const { message, items, loop = false, context, searchable = false } = config;
 
   const ctx = context ?? { logger: createLogger("Menu") };
 
@@ -40,6 +41,7 @@ export async function runMenu<T>(config: MenuConfig<T>): Promise<T | null> {
       selected = await escSelect<MenuItem<T>>({
         message,
         choices,
+        searchable,
       });
     } catch (err) {
       if (isPromptCancelled(err)) {

@@ -1,4 +1,4 @@
-import { select, input, password } from "@inquirer/prompts";
+import { select, search, input, password } from "@inquirer/prompts";
 
 /**
  * 用户通过 ESC 键取消 prompt 时抛出的错误
@@ -51,11 +51,36 @@ async function withEscapeCancel<T>(
  * 支持 ESC 取消的 select
  */
 export async function escSelect<T>(
-  config: Parameters<typeof select<T>>[0],
+  config: Parameters<typeof select<T>>[0] & { searchable?: boolean },
   context?: Parameters<typeof select<T>>[1]
 ): Promise<T> {
+  const { searchable, ...selectConfig } = config;
+
+  if (searchable) {
+    // Convert select config to search config
+    const choices = selectConfig.choices || [];
+    const searchConfig = {
+      message: selectConfig.message,
+      source: async (searchTerm: string | undefined) => {
+        const term = (searchTerm || "").toLowerCase();
+        return choices.filter((choice) => {
+          if (choice && typeof choice === "object" && "name" in choice && choice.name) {
+            return choice.name.toLowerCase().includes(term);
+          }
+          return true;
+        });
+      },
+      pageSize: selectConfig.pageSize,
+      theme: selectConfig.theme,
+    };
+
+    return withEscapeCancel((signal) =>
+      search(searchConfig as Parameters<typeof search<T>>[0], { ...context, signal })
+    );
+  }
+
   return withEscapeCancel((signal) =>
-    select(config, { ...context, signal })
+    select(selectConfig, { ...context, signal })
   );
 }
 
